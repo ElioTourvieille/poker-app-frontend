@@ -1,7 +1,6 @@
-
 import { User } from "next-auth"
 
-export async function getUserFromDb(email: string, passwordHash: string): Promise<any> {
+export async function getUserFromDb(email: string, passwordHash: Promise<string>): Promise<any> {
   try {
     // TODO: Implement this
   } catch (error) {

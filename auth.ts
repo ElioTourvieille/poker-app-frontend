@@ -1,19 +1,29 @@
 import NextAuth from "next-auth"
 import { ZodError } from "zod"
 import Credentials from "next-auth/providers/credentials"
+import Discord from "next-auth/providers/discord"
 import { signInSchema } from "./lib/zod"
 // Your own logic for dealing with plaintext password strings; be careful!
-import { saltAndHashPassword } from "@/utils/password"
+import { hashPassword } from "./utils/password"
 import { getUserFromDb } from "./utils/db"
  
 export const { handlers, auth } = NextAuth({
   providers: [
+    Discord,
     Credentials({
-      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-      // e.g. domain, username, password, 2FA token, etc.
+      // Customizing the Credentials provider
+      name: "Email",
       credentials: {
-        email: {},
-        password: {},
+        email: { 
+          label: "Adresse email",
+          type: "email",
+          placeholder: "exemple@domain.com"
+        },
+        password: { 
+          label: "Mot de passe",
+          type: "password",
+          placeholder: "••••••••"
+        },
       },
       authorize: async (credentials) => {
         try {
@@ -22,7 +32,7 @@ export const { handlers, auth } = NextAuth({
           const { email, password } = await signInSchema.parseAsync(credentials)
  
           // logic to salt and hash password
-          const pwHash = saltAndHashPassword(password)
+          const pwHash = hashPassword(password)
  
           // logic to verify if the user exists
           user = await getUserFromDb(email, pwHash)
@@ -42,4 +52,10 @@ export const { handlers, auth } = NextAuth({
       },
     }),
   ],
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+  theme: {
+    colorScheme: "light",
+    logo: "/img/logo.png",
+  },
 })
